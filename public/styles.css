@@ -1,0 +1,30 @@
+.container
+{
+    background-color: whitesmoke;   
+}
+.titulo
+{
+    color: #665555;
+}
+
+.mensajes
+{
+    color: brown;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.mensajes b
+{
+    color: blue;
+}
+
+.mensajes i 
+{
+    color: green;
+}
+
+.btn-primary
+{
+    border-radius: 0%;
+}

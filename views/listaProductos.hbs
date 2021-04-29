@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     
+    <title>hola</title>
+</head>
+<body>
+    <div class="container">
+        <h3 class="titulo">Ingresa el producto</h3>
+        <form id="form" action="/productos/guardar/" method="post">
+            <label><b><i>Nombre</i></b></label><br>
+            
+            <input id="title" class="form-control form-control-sm" type="text" name="title" placeholder="Nombre del producto"><br>
+            
+            <label><b><i>Precio</i></b></label><br>
+            
+            <input id="price" class="form-control form-control-sm" type="number" name="price" placeholder="Precio del producto"><br>
+            
+            <label><b><i>Foto URL</i></b></label><br>
+            
+            <input id="thumbnail" class="form-control form-control-sm" type="text" name="thumbnail" placeholder="URL de la foto"><br>
+            
+            <input class="btn btn-success" type="submit" value="Enviar">
+        </form>
+        <hr>
+        <h3 class="titulo">Lista de productos </h3>
+        {{#if existenProductos}}
+        <table id="tabla" class="table table-dark table-hover">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Precio</th>
+                    <th>Imagen</th>
+                </tr>
+            </thead> 
+            <tbody>
+                {{#each productos}}    
+                    <tr>
+                        <td>{{this.title}}</td>
+                        <td>${{this.price}}</td>
+                        <td><img src={{this.thumbnail}}></td>
+                    </tr>
+                {{/each}}
+            </tbody>
+        </table>
+        {{else}}
+            <div class="alert alert-warning">
+                <b>No se encontraron productos</b>
+            </div>
+        {{/if}}
+    </div>
+
+    <div class="container">
+        <h2 class="titulo">Centro de mensajes</h3>
+        
+        <form id="form-chat">
+            <div class="input-group mb-3">
+            <input id="email" type="text" class="form-control" placeholder="Email" required>
+        </div>
+        
+        <hr>
+        
+        <div id="mensajes" class="mensajes">
+            {{#each mensajes}}
+                <b>{{this.email}}</b>[{{this.fecha}}]: <i>{{this.mensaje}}</i><br>
+            {{/each}}
+        </div>
+
+        <div class="input-group mb-3">
+            <input id="mensaje" type="text" class="form-control" placeholder="Ingresá un mensaje" required>
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="submit">Enviar!</button>
+            </div>
+        </div>
+        </form>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <script>
+        
+        var socket = io();
+        //  FORMULARIOS
+        const form = document.getElementById('form');
+        const formChat = document.getElementById('form-chat');
+        
+        //INPUTS
+        const title = document.getElementById('title');
+        const price = document.getElementById('price');
+        const thumbnail = document.getElementById('thumbnail');
+        const email = document.getElementById('email');
+        const mensaje = document.getElementById('mensaje');
+
+        //CONTENEDORES
+        const tbody = document.querySelector('tbody');
+        const listaMensajes = document.getElementById('mensajes');
+        
+        let fecha = new Date();
+        
+        let fechaFormateada= `${fecha.getDate()}/${fecha.getMonth()+1}/${fecha.getFullYear()} ${fecha.getHours()}:${fecha.getMinutes()}:${fecha.getSeconds()}`;
+        
+        form.addEventListener('submit', () =>
+        {
+            const producto = 
+            {
+                title: title.value,
+                price: price.value,
+                thumbnail: thumbnail.value 
+            }
+            socket.emit('client-message', JSON.stringify(producto));
+        });
+
+        formChat.addEventListener('submit' , (event) => 
+        {
+            event.preventDefault();
+            const datosMensaje = 
+            {
+                email: email.value,
+                fecha: fechaFormateada,
+                mensaje: mensaje.value
+            }
+            socket.emit('client-chat-message', JSON.stringify(datosMensaje));
+            mensaje.value = '';
+        });
+
+        socket.on('server-message', (strProducto) =>
+        {
+            producto = JSON.parse(strProducto);
+            tbody.innerHTML += `<td> ${producto.title} </td>
+            <td> $${producto.price} </td>
+            <td><img src="${producto.thumbnail}"</td>`;
+        });
+
+        socket.on('server-chat-message', (strDatosMensaje) => 
+        {
+            datosMensaje = JSON.parse(strDatosMensaje);
+            listaMensajes.innerHTML += `<b>${datosMensaje.email}</b>[${fechaFormateada}]: <i>${datosMensaje.mensaje}</i><br>`
+        });
+    
+    </script>
+</body>
+</html>
